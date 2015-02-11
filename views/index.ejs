@@ -1,0 +1,90 @@
+<!DOCTYPE html>  
+<html>  
+	<head>  
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />  
+		<style type="text/css">  
+			#l-map {width: 100%;height: 100%;overflow: hidden;margin:0;} 
+
+			.chatroom {width: 300px; height:500px; border-style: solid; border-width: 1px 1px 1px 1px;}
+		</style>  
+		<script type="text/javascript" src="http://api.map.baidu.com/api?ak=5sZ8abTQ0lb9iYmqzCGmif6x&v=2.0"></script>  
+		<script type="text/javascript" src="javascripts/convertor.js"></script>
+		<title>Loc-Social</title>  
+	</head>  
+	<body>
+		<div class="chatroom">
+			<div id="l-map"/>
+		</div>
+
+		<p id="geo_loc">location</p>
+
+		<p id="real_loc">test</p>
+
+	</body>
+</html>  
+	<script type="text/javascript">
+		function loadGeoLocation() {
+			if (navigator.geolocation) {  
+			    document.getElementById("geo_loc").innerHTML="Play geo locaiton...";
+			    navigator.geolocation.getCurrentPosition(showLocation, showError, {enableHighAccuracy:true,maximumAge:600000});
+			} else {  
+			    document.getElementById("geo_loc").innerHTML="opps! geo locaiton not available...";
+			}
+		}
+
+		function showLocation(position) {
+            document.getElementById("geo_loc").innerHTML="<p>Latitude: " + position.coords.latitude + "</p>" 
+            + "<p>Longitude: " + position.coords.longitude + "</p>" 
+            + "<p>Accuracy: " + position.coords.accuracy + "</p>" 
+            + "<p>Altitude: " + position.coords.altitude + "</p>" 
+            + "<p>Altitude accuracy: " + position.coords.altitudeAccuracy + "</p>" 
+            + "<p>Speed: " + position.coords.speed + "</p>" 
+            + "<p>Heading: " + position.coords.heading + "</p>";
+
+			var gpsPoint = new BMap.Point(position.coords.longitude, position.coords.latitude);
+
+			// translateGps(gpsPoint);
+			// showMap(gpsPoint);
+			translate(gpsPoint);
+    	}
+
+    	function showError(error) {
+            document.getElementById("geo_loc").innerHTML= error.code + " " + error.message;
+        }
+
+        function translate(point) {
+        	BMap.Convertor.translate(point, 0, showMap);
+        }
+
+        function showMap(point) {
+
+        	if(!point) {
+				document.getElementById("geo_loc").innerHTML=('Show baidu map.');
+        		point = new BMap.Point(116.404, 39.915);
+        	}
+
+			document.getElementById("real_loc").innerHTML="<p>Latitude: " + point.lat + "</p>" 
+            + "<p>Heading: " + point.lng + "</p>";
+
+        	var map = new BMap.Map("l-map");  
+			map.centerAndZoom(point, 15);
+			var marker = new BMap.Marker(point);        // 创建标注      
+			map.addOverlay(marker);
+        }
+
+        function translateGps(point) {
+		    var xmlHttp = null;
+
+		    xmlHttp = new XMLHttpRequest();
+		    xmlHttp.open("GET", "/translate?lat=" + point.lat + "&lng=" + point.lng, false);
+		    xmlHttp.send(null);
+		    // alert(xmlHttp.responseText);
+		    var data = JSON.parse(xmlHttp.responseText);
+		    var pt = new BMap.Point(data.Lng, data.Lat);
+		    showMap(pt);
+		    // return xmlHttp.responseText;
+        }
+
+		loadGeoLocation();
+	</script>
